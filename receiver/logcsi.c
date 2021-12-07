@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
   struct sockaddr_in clint_addr;
   socklen_t clnt_addr_size;
 
-  serv_sock = socket(PF_INET, SOCK_STREAM, 0); //1¹ø
+  serv_sock = socket(AF_INET, SOCK_STREAM, 0); //1¹ø
   if (serv_sock == -1)
       printf("socket error\n");
 
