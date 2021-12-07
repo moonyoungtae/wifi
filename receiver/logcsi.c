@@ -144,6 +144,8 @@ int main(int argc, char *argv[])
   serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
   serverAddress.sin_port = htons(20162);
 
+
+
   // generate server socker and bind
   if ((server_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) // SOCK_DGRAM : UDP
   {
@@ -156,7 +158,6 @@ int main(int argc, char *argv[])
       printf("Server : can not bind local address");
       exit(0);
   }
-  printf("Server: waiting connection request.\n");
 
   //check client ip
   struct sockaddr_in connectSocket;
@@ -168,18 +169,15 @@ int main(int argc, char *argv[])
   if (strcmp(clientIP, "0.0.0.0") != 0)
       printf("Client : %s\n", clientIP);
 
-
   client_addr_size = sizeof(clientAddress);
 
   receivedBytes = recvfrom(server_fd, readBuff, BUFF_SIZE, 0, (struct sockaddr*)&clientAddress, &client_addr_size);
   printf("%lu bytes read\n", receivedBytes);
-  readBuff[receivedBytes] = '\0';
+  readBuff[receivedBytes] = '\0';   
   fputs(readBuff, stdout);
   fflush(stdout);
-  if (!receivedBytes) {
-      printf("not connected\m");
-      exit(0);
-  }
+
+  printf("Server: waiting connection request.\n");
 
 
   /* listen CSI */
