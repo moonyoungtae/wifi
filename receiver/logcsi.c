@@ -127,31 +127,68 @@ int main(int argc, char *argv[])
   system("iw dev wlp1s0 info");
 
   //revised for udp
-  int serv_sock;
-  int clint_sock;
 
-  struct sockaddr_in serv_addr;
-  struct sockaddr_in clint_addr;
-  socklen_t clnt_addr_size;
+  char readBuff[BUFFER_SIZE];
+  char sendBuff[BUFFER_SIZE];
+  struct sockaddr_in serverAddress, clientAddress;
+  int server_fd, client_fd;
+  int client_addr_size;
+  ssize_t receivedBytes;
+  ssize_t sentBytes;
 
-  serv_sock = socket(AF_INET, SOCK_STREAM, 0); //1번
-  if (serv_sock == -1)
-      printf("socket error\n");
+  /*
+  if (argc != 2)
+  {
+  printf("사용법 : ./filename 포트번호 \n");
+  exit(0);
+  }
+  */
 
-  memset(&serv_addr, 0, sizeof(serv_addr));
-  serv_addr.sin_family = AF_INET;
-  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  serv_addr.sin_port = htons(20162);
+  socklen_t clientAddressLength = 0;
 
-  if (bind(serv_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) //2번
-      printf("bind error\n");
-  if (listen(serv_sock, 5) == -1) //3번
-      printf("listen error\n");
+  memset(&serverAddress, 0, sizeof(serverAddress));
+  memset(&clientAddress, 0, sizeof(clientAddress));
 
-  clnt_addr_size = sizeof(clint_addr);
-  clint_sock = accept(serv_sock, (struct sockaddr*)&clint_addr, &clnt_addr_size); //4번
-  if (clint_sock == -1)
-      printf("accept error\n");
+  serverAddress.sin_family = AF_INET;
+  serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+  serverAddress.sin_port = htons(20162);
+
+
+  // 서버 소켓 생성 및 서버 주소와 bind
+
+  // 서버 소켓 생성(UDP니 SOCK_DGRAM이용)
+  if ((server_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) // SOCK_DGRAM : UDP
+  {
+      printf("Sever : can not Open Socket\n");
+      exit(0);
+  }
+
+  // bind 과정
+  if (bind(server_fd, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
+  {
+      printf("Server : can not bind local address");
+      exit(0);
+  }
+  printf("Server: waiting connection request.\n");
+
+  struct sockaddr_in connectSocket;
+  socklen_t connectSocketLength = sizeof(connectSocket);
+  getpeername(client_fd, (struct sockaddr*)&clientAddress, &connectSocketLength);
+  char clientIP[sizeof(clientAddress.sin_addr) + 1] = { 0 };
+  sprintf(clientIP, "%s", inet_ntoa(clientAddress.sin_addr));
+  // 접속이 안되었을 때는 while에서 출력 x
+  if (strcmp(clientIP, "0.0.0.0") != 0)
+      printf("Client : %s\n", clientIP);
+
+
+  //채팅 프로그램 제작
+  client_addr_size = sizeof(clientAddress);
+
+  receivedBytes = recvfrom(server_fd, readBuff, BUFF_SIZE, 0, (struct sockaddr*)&clientAddress, &client_addr_size);
+  printf("%lu bytes read\n", receivedBytes);
+  readBuff[receivedBytes] = '\0';
+  fputs(readBuff, stdout);
+  fflush(stdout);
 
   /* listen CSI */
   printf("\nReceiving data... Press Ctrl+C to quit.\n\n");
@@ -205,6 +242,7 @@ int main(int argc, char *argv[])
           buf_addr[1] = csi_status->buf_len >> 8;
           write_size = fwrite(buf_addr, 1, csi_status->buf_len + 2, log);
           send(clint_sock, buf_addr, csi_status->buf_len + 2,0);
+          sentBytes = sendto(server_fd, buf_addr, csi_status->buf_len + 2, 0, (struct sockaddr*)&clientAddress, sizeof(clientAddress));
 
           if (1 > write_size) {
             fprintf(stdout, write_fail_sign);
