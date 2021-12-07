@@ -158,12 +158,6 @@ int main(int argc, char *argv[])
   }
   printf("Server: waiting connection request.\n");
 
-
-  /* listen CSI */
-  printf("\nReceiving data... Press Ctrl+C to quit.\n\n");
-  signal(SIGINT, sigHandler);
-  setbuf(stdout, NULL);
-
   //check client ip
   struct sockaddr_in connectSocket;
   socklen_t connectSocketLength = sizeof(connectSocket);
@@ -182,6 +176,16 @@ int main(int argc, char *argv[])
   readBuff[receivedBytes] = '\0';
   fputs(readBuff, stdout);
   fflush(stdout);
+  if (!receivedBytes) {
+      printf("not connected\m");
+      exit(0);
+  }
+
+
+  /* listen CSI */
+  printf("\nReceiving data... Press Ctrl+C to quit.\n\n");
+  signal(SIGINT, sigHandler);
+  setbuf(stdout, NULL);
 
   while (recording)
   {
