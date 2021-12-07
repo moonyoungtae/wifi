@@ -1,0 +1,3 @@
+*.o
+inject
+hostapd.temp.conf
