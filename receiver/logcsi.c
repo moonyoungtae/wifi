@@ -196,6 +196,7 @@ int main(int argc, char *argv[])
       /* log the received data */
       else if (file_flag)
       {
+          printf(" ++  %d  ++ \n", csi_status->buf_len + 2);
           printf("file flag\n");
         if (csi_status->nt == 0) {
           fprintf(stdout, csi_broken_sign);
@@ -206,7 +207,7 @@ int main(int argc, char *argv[])
           buf_addr[0] = csi_status->buf_len & 0xFF;
           buf_addr[1] = csi_status->buf_len >> 8;
           write_size = fwrite(buf_addr, 1, csi_status->buf_len + 2, log);
-          printf("%d", csi_status->buf_len + 2);
+          
           int length = csi_status->buf_len + 2;
           send(clint_sock,length, 4, 0);
           send(clint_sock, buf_addr, csi_status->buf_len + 2,0);
