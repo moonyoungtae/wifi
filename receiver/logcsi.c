@@ -127,58 +127,31 @@ int main(int argc, char *argv[])
   system("iw dev wlp1s0 info");
 
   //revised for udp
-  char readBuff[BUFFER_SIZE];
-  char sendBuff[BUFFER_SIZE];
-  struct sockaddr_in serverAddress, clientAddress;
-  int server_fd, client_fd;
-  int client_addr_size;
-  ssize_t receivedBytes;
-  ssize_t sentBytes;
+  int serv_sock;
+  int clint_sock;
 
-  socklen_t clientAddressLength = 0;
+  struct sockaddr_in serv_addr;
+  struct sockaddr_in clint_addr;
+  socklen_t clnt_addr_size;
 
-  memset(&serverAddress, 0, sizeof(serverAddress));
-  memset(&clientAddress, 0, sizeof(clientAddress));
+  serv_sock = socket(PF_INET, SOCK_STREAM, 0); //1번
+  if (serv_sock == -1)
+      printf("socket error\n");
 
-  serverAddress.sin_family = AF_INET;
-  serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-  serverAddress.sin_port = htons(20162);
+  memset(&serv_addr, 0, sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  serv_addr.sin_port = htons(20162);
 
+  if (bind(serv_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) //2번
+      printf("bind error\n");
+  if (listen(serv_sock, 5) == -1) //3번
+      printf("listen error\n");
 
-
-  // generate server socker and bind
-  if ((server_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) // SOCK_DGRAM : UDP
-  {
-      printf("Sever : can not Open Socket\n");
-      exit(0);
-  }
-  // bind
-  if (bind(server_fd, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
-  {
-      printf("Server : can not bind local address");
-      exit(0);
-  }
-
-  //check client ip
-  struct sockaddr_in connectSocket;
-  socklen_t connectSocketLength = sizeof(connectSocket);
-  getpeername(client_fd, (struct sockaddr*)&clientAddress, &connectSocketLength);
-  char clientIP[sizeof(clientAddress.sin_addr) + 1] = { 0 };
-  sprintf(clientIP, "%s", inet_ntoa(clientAddress.sin_addr));
-  // print x if not connected
-  if (strcmp(clientIP, "0.0.0.0") != 0)
-      printf("Client : %s\n", clientIP);
-
-  client_addr_size = sizeof(clientAddress);
-
-  receivedBytes = recvfrom(server_fd, readBuff, BUFF_SIZE, 0, (struct sockaddr*)&clientAddress, &client_addr_size);
-  printf("%lu bytes read\n", receivedBytes);
-  readBuff[receivedBytes] = '\0';   
-  fputs(readBuff, stdout);
-  fflush(stdout);
-
-  printf("Server: waiting connection request.\n");
-
+  clnt_addr_size = sizeof(clint_addr);
+  clint_sock = accept(serv_sock, (struct sockaddr*)&clint_addr, &clnt_addr_size); //4번
+  if (clint_sock == -1)
+      printf("accept error\n");
 
   /* listen CSI */
   printf("\nReceiving data... Press Ctrl+C to quit.\n\n");
@@ -234,7 +207,7 @@ int main(int argc, char *argv[])
           buf_addr[1] = csi_status->buf_len >> 8;
           write_size = fwrite(buf_addr, 1, csi_status->buf_len + 2, log);
 
-          sentBytes = sendto(server_fd,buf_addr, strlen(buf_addr), 0, (struct sockaddr*)&clientAddress, sizeof(clientAddress));
+          write(clint_sock, buf_addr, sizeof(buf_addr));
 
           if (1 > write_size) {
             fprintf(stdout, write_fail_sign);
@@ -260,7 +233,8 @@ int main(int argc, char *argv[])
   close_csi_device(csi_device);
   free(csi_status);
 
-  close(server_fd);
+  close(serv_sock);
+  close(clint_sock);
 
   return 0;
 }
