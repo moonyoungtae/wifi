@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
           write_size = fwrite(buf_addr, 1, csi_status->buf_len + 2, log);
           printf("%d", csi_status->buf_len + 2);
           int length = csi_status->buf_len + 2;
-          send(clint_sock,&length, 4, 0);
+          send(clint_sock,length, 4, 0);
           send(clint_sock, buf_addr, csi_status->buf_len + 2,0);
 
           if (1 > write_size) {
