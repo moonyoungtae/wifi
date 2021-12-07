@@ -126,12 +126,59 @@ int main(int argc, char *argv[])
   /* print iw dev wlp1s0 info */
   system("iw dev wlp1s0 info");
 
+  //revised for udp
+  char readBuff[BUFFER_SIZE];
+  char sendBuff[BUFFER_SIZE];
+  struct sockaddr_in serverAddress, clientAddress;
+  int server_fd, client_fd;
+  int client_addr_size;
+  ssize_t receivedBytes;
+  ssize_t sentBytes;
+
+  socklen_t clientAddressLength = 0;
+
+  memset(&serverAddress, 0, sizeof(serverAddress));
+  memset(&clientAddress, 0, sizeof(clientAddress));
+
+  serverAddress.sin_family = AF_INET;
+  serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+  serverAddress.sin_port = htons(20162);
+
+  // generate server socker and bind
+  if ((server_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) // SOCK_DGRAM : UDP
+  {
+      printf("Sever : can not Open Socket\n");
+      exit(0);
+  }
+  // bind
+  if (bind(server_fd, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
+  {
+      printf("Server : can not bind local address");
+      exit(0);
+  }
+  printf("Server: waiting connection request.\n");
+
+
   /* listen CSI */
   printf("\nReceiving data... Press Ctrl+C to quit.\n\n");
   signal(SIGINT, sigHandler);
   setbuf(stdout, NULL);
   while (recording)
   {
+    //check client ip
+     struct sockaddr_in connectSocket;
+     socklen_t connectSocketLength = sizeof(connectSocket);
+     getpeername(client_fd, (struct sockaddr*)&clientAddress, &connectSocketLength);
+     char clientIP[sizeof(clientAddress.sin_addr) + 1] = { 0 };
+     sprintf(clientIP, "%s", inet_ntoa(clientAddress.sin_addr));
+     // print x if not connected
+     if (strcmp(clientIP, "0.0.0.0") != 0)
+         printf("Client : %s\n", clientIP);
+
+
+     client_addr_size = sizeof(clientAddress);
+
+
     /* keep listening to the kernel and waiting for the csi report */
     read_size = read_csi_buf(&buf_addr[2], csi_device, BUFSIZE);
 
@@ -175,6 +222,8 @@ int main(int argc, char *argv[])
           buf_addr[0] = csi_status->buf_len & 0xFF;
           buf_addr[1] = csi_status->buf_len >> 8;
           write_size = fwrite(buf_addr, 1, csi_status->buf_len + 2, log);
+          sendBuff=buf_addr
+          sentBytes = sendto(server_fd, sendBuff, strlen(sendBuff), 0, (struct sockaddr*)&clientAddress, sizeof(clientAddress));
 
           if (1 > write_size) {
             fprintf(stdout, write_fail_sign);
@@ -199,6 +248,8 @@ int main(int argc, char *argv[])
   }
   close_csi_device(csi_device);
   free(csi_status);
+
+  close(server_fd);
 
   return 0;
 }

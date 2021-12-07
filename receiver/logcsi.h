@@ -22,6 +22,16 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
+# define PORT 20162
+# define BUFFER_SIZE 4096 // for server
+# define BUFF_SIZE 100 // for client
+
+
+√‚√≥: https://www.crocus.co.kr/444 [Crocus]
 
 typedef struct
 {
