@@ -196,17 +196,17 @@ int main(int argc, char *argv[])
       /* log the received data */
       else if (file_flag)
       {
-         fprintf(stdout, "file_flag\n");
+          printf("file flag\n");
         if (csi_status->nt == 0) {
           fprintf(stdout, csi_broken_sign);
-          fprintf(stdout, "-------------------\n");
+          printf("-------------------\n");
         } else if (csi_status->bandwidth != bandwidth) {
           fprintf(stdout, bw_mismatch_sign);
         } else {
           buf_addr[0] = csi_status->buf_len & 0xFF;
           buf_addr[1] = csi_status->buf_len >> 8;
           write_size = fwrite(buf_addr, 1, csi_status->buf_len + 2, log);
-          fprintf(stdout, "%d", csi_status->buf_len + 2);
+          printf("%d", csi_status->buf_len + 2);
           write(clint_sock, buf_addr, csi_status->buf_len + 2);
 
           if (1 > write_size) {
