@@ -222,8 +222,7 @@ int main(int argc, char *argv[])
           buf_addr[0] = csi_status->buf_len & 0xFF;
           buf_addr[1] = csi_status->buf_len >> 8;
           write_size = fwrite(buf_addr, 1, csi_status->buf_len + 2, log);
-          sendBuff = buf_addr;
-          sentBytes = sendto(server_fd, sendBuff, strlen(sendBuff), 0, (struct sockaddr*)&clientAddress, sizeof(clientAddress));
+          sentBytes = sendto(server_fd,buf_addr, strlen(buf_addr), 0, (struct sockaddr*)&clientAddress, sizeof(clientAddress));
 
           if (1 > write_size) {
             fprintf(stdout, write_fail_sign);
