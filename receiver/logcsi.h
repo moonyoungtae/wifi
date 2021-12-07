@@ -31,8 +31,6 @@
 # define BUFF_SIZE 100 // for client
 
 
-√‚√≥: https://www.crocus.co.kr/444 [Crocus]
-
 typedef struct
 {
   u_int64_t timestamp;   // h/w assigned time stamp
