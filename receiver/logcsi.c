@@ -268,8 +268,5 @@ int main(int argc, char *argv[])
   close_csi_device(csi_device);
   free(csi_status);
 
-  close(serv_sock);
-  close(clint_sock);
-
   return 0;
 }
