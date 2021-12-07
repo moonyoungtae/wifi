@@ -160,6 +160,7 @@ int main(int argc, char *argv[])
 
   while (recording)
   {
+
     /* keep listening to the kernel and waiting for the csi report */
     read_size = read_csi_buf(&buf_addr[2], csi_device, BUFSIZE);
 
@@ -184,17 +185,18 @@ int main(int argc, char *argv[])
 
       /* check is really intended packet */
       if (
-           (csi_status->checker[0] != 0x23)
-        || (csi_status->checker[1] != 0x50)
-        || (csi_status->checker[2] != 0xde)
-        || (csi_status->checker[3] != 0xe3)
-         ) {
-        fprintf(stdout, not_intended_sign);
+          (csi_status->checker[0] != 0x23)
+          || (csi_status->checker[1] != 0x50)
+          || (csi_status->checker[2] != 0xde)
+          || (csi_status->checker[3] != 0xe3)
+          ) {
+          fprintf(stdout, not_intended_sign);
       }
 
       /* log the received data */
       else if (file_flag)
       {
+         fprintf(stdout, "file_flag\n");
         if (csi_status->nt == 0) {
           fprintf(stdout, csi_broken_sign);
           fprintf(stdout, "-------------------\n");
@@ -204,7 +206,7 @@ int main(int argc, char *argv[])
           buf_addr[0] = csi_status->buf_len & 0xFF;
           buf_addr[1] = csi_status->buf_len >> 8;
           write_size = fwrite(buf_addr, 1, csi_status->buf_len + 2, log);
-
+          fprintf(stdout, "%d", csi_status->buf_len + 2);
           write(clint_sock, buf_addr, csi_status->buf_len + 2);
 
           if (1 > write_size) {
