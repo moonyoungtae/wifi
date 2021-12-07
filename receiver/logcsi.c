@@ -181,11 +181,10 @@ int main(int argc, char *argv[])
       printf("Client : %s\n", clientIP);
 
 
-  //채팅 프로그램 제작
   client_addr_size = sizeof(clientAddress);
 
   receivedBytes = recvfrom(server_fd, readBuff, BUFF_SIZE, 0, (struct sockaddr*)&clientAddress, &client_addr_size);
-  printf("%lu bytes read\n", receivedBytes);
+  //printf("%lu bytes read\n", receivedBytes);
   readBuff[receivedBytes] = '\0';
   fputs(readBuff, stdout);
   fflush(stdout);
@@ -241,7 +240,7 @@ int main(int argc, char *argv[])
           buf_addr[0] = csi_status->buf_len & 0xFF;
           buf_addr[1] = csi_status->buf_len >> 8;
           write_size = fwrite(buf_addr, 1, csi_status->buf_len + 2, log);
-          send(clint_sock, buf_addr, csi_status->buf_len + 2,0);
+          //send(clint_sock, buf_addr, csi_status->buf_len + 2,0);
           sentBytes = sendto(server_fd, buf_addr, csi_status->buf_len + 2, 0, (struct sockaddr*)&clientAddress, sizeof(clientAddress));
 
           if (1 > write_size) {
