@@ -170,7 +170,6 @@ int main(int argc, char *argv[])
       /* fill the status struct with information about the rx packet */
       if (disp_info) {
         record_status(&buf_addr[2], read_size, csi_status);
-        /*
         fprintf(
           stdout,
           "%d (%d): phyerr(%d) payload(%d) csi(%d) rate(0x%d) nt(%d) nr(%d) nc(%d) timestamp(%lld)",
@@ -179,7 +178,6 @@ int main(int argc, char *argv[])
           csi_status->nt, csi_status->nr, csi_status->nc,
           csi_status->timestamp
         );
-        */
       } else {
         record_status_min(&buf_addr[2], read_size, csi_status);
       }
@@ -207,7 +205,7 @@ int main(int argc, char *argv[])
           buf_addr[1] = csi_status->buf_len >> 8;
           write_size = fwrite(buf_addr, 1, csi_status->buf_len + 2, log);
 
-          write(clint_sock, buf_addr, sizeof(buf_addr));
+          write(clint_sock, buf_addr, csi_status->buf_len + 2);
 
           if (1 > write_size) {
             fprintf(stdout, write_fail_sign);
