@@ -178,6 +178,11 @@ int main(int argc, char *argv[])
 
      client_addr_size = sizeof(clientAddress);
 
+     receivedBytes = recvfrom(server_fd, readBuff, BUFF_SIZE, 0, (struct sockaddr*)&clientAddress, &client_addr_size);
+     printf("%lu bytes read\n", receivedBytes);
+     readBuff[receivedBytes] = '\0';
+     fputs(readBuff, stdout);
+     fflush(stdout);
 
     /* keep listening to the kernel and waiting for the csi report */
     read_size = read_csi_buf(&buf_addr[2], csi_device, BUFSIZE);
@@ -222,6 +227,7 @@ int main(int argc, char *argv[])
           buf_addr[0] = csi_status->buf_len & 0xFF;
           buf_addr[1] = csi_status->buf_len >> 8;
           write_size = fwrite(buf_addr, 1, csi_status->buf_len + 2, log);
+
           sentBytes = sendto(server_fd,buf_addr, strlen(buf_addr), 0, (struct sockaddr*)&clientAddress, sizeof(clientAddress));
 
           if (1 > write_size) {
