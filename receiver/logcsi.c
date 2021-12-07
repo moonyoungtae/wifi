@@ -163,27 +163,28 @@ int main(int argc, char *argv[])
   printf("\nReceiving data... Press Ctrl+C to quit.\n\n");
   signal(SIGINT, sigHandler);
   setbuf(stdout, NULL);
+
+  //check client ip
+  struct sockaddr_in connectSocket;
+  socklen_t connectSocketLength = sizeof(connectSocket);
+  getpeername(client_fd, (struct sockaddr*)&clientAddress, &connectSocketLength);
+  char clientIP[sizeof(clientAddress.sin_addr) + 1] = { 0 };
+  sprintf(clientIP, "%s", inet_ntoa(clientAddress.sin_addr));
+  // print x if not connected
+  if (strcmp(clientIP, "0.0.0.0") != 0)
+      printf("Client : %s\n", clientIP);
+
+
+  client_addr_size = sizeof(clientAddress);
+
+  receivedBytes = recvfrom(server_fd, readBuff, BUFF_SIZE, 0, (struct sockaddr*)&clientAddress, &client_addr_size);
+  printf("%lu bytes read\n", receivedBytes);
+  readBuff[receivedBytes] = '\0';
+  fputs(readBuff, stdout);
+  fflush(stdout);
+
   while (recording)
   {
-    //check client ip
-     struct sockaddr_in connectSocket;
-     socklen_t connectSocketLength = sizeof(connectSocket);
-     getpeername(client_fd, (struct sockaddr*)&clientAddress, &connectSocketLength);
-     char clientIP[sizeof(clientAddress.sin_addr) + 1] = { 0 };
-     sprintf(clientIP, "%s", inet_ntoa(clientAddress.sin_addr));
-     // print x if not connected
-     if (strcmp(clientIP, "0.0.0.0") != 0)
-         printf("Client : %s\n", clientIP);
-
-
-     client_addr_size = sizeof(clientAddress);
-
-     receivedBytes = recvfrom(server_fd, readBuff, BUFF_SIZE, 0, (struct sockaddr*)&clientAddress, &client_addr_size);
-     printf("%lu bytes read\n", receivedBytes);
-     readBuff[receivedBytes] = '\0';
-     fputs(readBuff, stdout);
-     fflush(stdout);
-
     /* keep listening to the kernel and waiting for the csi report */
     read_size = read_csi_buf(&buf_addr[2], csi_device, BUFSIZE);
 
@@ -223,6 +224,7 @@ int main(int argc, char *argv[])
       {
         if (csi_status->nt == 0) {
           fprintf(stdout, csi_broken_sign);
+          fprintf(stdout, "-------------------\n");
         } else if (csi_status->bandwidth != bandwidth) {
           fprintf(stdout, bw_mismatch_sign);
         } else {
